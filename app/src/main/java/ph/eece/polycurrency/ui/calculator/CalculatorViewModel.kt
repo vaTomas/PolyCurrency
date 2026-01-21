@@ -24,6 +24,7 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
             is CalculatorEvent.OnDelete -> { /* TODO */ }
             is CalculatorEvent.OnCurrency -> { /* TODO */ }
             is CalculatorEvent.OnEvaluate -> { /* TODO */ }
+            is CalculatorEvent.OnPercent -> addPercent()
         }
     }
 
@@ -112,6 +113,25 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
             // Standard Number State
             else {
                 tokens.add(CalculatorToken.Operator(newOp))
+            }
+
+            currentState.copy(tokens = tokens)
+        }
+    }
+
+    private fun addPercent() {
+        _state.update { currentState ->
+            val tokens = currentState.tokens.toMutableList()
+            val lastToken = tokens.lastOrNull()
+
+            val isValidPredecessor = when (lastToken) {
+                is CalculatorToken.Number -> true // X -> X%
+                is CalculatorToken.Operator -> lastToken.symbol == '%' // % -> %% (Stacking)
+                else -> false // Empty or Binary Operator -> Ignore
+            }
+
+            if (isValidPredecessor) {
+                tokens.add(CalculatorToken.Operator('%'))
             }
 
             currentState.copy(tokens = tokens)

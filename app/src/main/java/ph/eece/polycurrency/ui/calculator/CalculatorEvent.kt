@@ -7,4 +7,5 @@ sealed class CalculatorEvent {
     object OnClear : CalculatorEvent()
     object OnDelete : CalculatorEvent()
     object OnEvaluate : CalculatorEvent()
+    object  OnPercent : CalculatorEvent()
 }
