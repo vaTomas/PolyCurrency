@@ -22,7 +22,7 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
 
             is CalculatorEvent.OnClear -> _state.update { CalculatorState() } // Reset
             is CalculatorEvent.OnDelete -> { /* TODO */ }
-            is CalculatorEvent.OnCurrency -> { /* TODO */ }
+            is CalculatorEvent.OnCurrency -> addCurrency(event.code)
             is CalculatorEvent.OnEvaluate -> { /* TODO */ }
             is CalculatorEvent.OnPercent -> addPercent()
         }
@@ -134,6 +134,41 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
                 tokens.add(CalculatorToken.Operator('%'))
             }
 
+            currentState.copy(tokens = tokens)
+        }
+    }
+
+    private fun addCurrency(code: String) {
+        _state.update { currentState ->
+            val tokens = currentState.tokens.toMutableList()
+            val lastToken = tokens.lastOrNull()
+
+            // If Empty -> Start with Currency
+            if (lastToken == null) {
+                tokens.add(CalculatorToken.Currency(code))
+            }
+            // If Latest is Operator -> Just Append
+            else if (lastToken is CalculatorToken.Operator) {
+                tokens.add(CalculatorToken.Currency(code))
+            }
+            // If Latest is Currency -> Replace
+            else if (lastToken is CalculatorToken.Currency) {
+                tokens[tokens.lastIndex] = CalculatorToken.Currency(code)
+            }
+            // If Latest is Number
+            else if (lastToken is CalculatorToken.Number) {
+                // Check the token BEFORE the number
+                val secondLastIndex = tokens.lastIndex - 1
+                val secondLastToken = tokens.getOrNull(secondLastIndex)
+
+                if (secondLastToken is CalculatorToken.Currency) {
+                    // If has existing currency -> Replace
+                    tokens[secondLastIndex] = CalculatorToken.Currency(code)
+                } else {
+                    // No currency -> Insert BEFORE the number
+                    tokens.add(tokens.lastIndex, CalculatorToken.Currency(code))
+                }
+            }
             currentState.copy(tokens = tokens)
         }
     }
