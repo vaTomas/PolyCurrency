@@ -182,7 +182,7 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
                 tokens.add(CalculatorToken.Currency(code))
             }
             // If Latest is Operator -> Just Append
-            else if (lastToken is CalculatorToken.Operator) {
+            else if (lastToken is CalculatorToken.Operator || lastToken is CalculatorToken.Parenthesis) {
                 tokens.add(CalculatorToken.Currency(code))
             }
             // If Latest is Currency -> Replace
