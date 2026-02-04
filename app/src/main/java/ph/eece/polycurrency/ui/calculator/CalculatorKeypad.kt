@@ -10,13 +10,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +36,8 @@ import ph.eece.polycurrency.ui.calculator.components.NumberPad
 @Composable
 fun CalculatorKeypad(
     onEvent: (CalculatorEvent) -> Unit,
+    activeCurrencies: List<String>,
+    onManageCurrencies: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -70,7 +75,26 @@ fun CalculatorKeypad(
             enter = expandVertically() + fadeIn(),
             exit = shrinkVertically() + fadeOut()
         ) {
-            CurrencyPad(onEvent = onEvent)
+            Row(Modifier.fillMaxWidth()) {
+                // The Dynamic List (Weight 1f fills most of the row)
+                CurrencyPad(
+                    onEvent = onEvent,
+                    currencies = activeCurrencies,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // The "Edit" Button (Small icon on the right)
+                IconButton(
+                    onClick = onManageCurrencies,
+                    modifier = Modifier.padding(top = 8.dp, end = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit, // Or Settings
+                        contentDescription = "Edit Currencies",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
 
         // Number Pad

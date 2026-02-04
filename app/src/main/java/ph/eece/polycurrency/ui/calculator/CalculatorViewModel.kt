@@ -172,4 +172,19 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
             currentState.copy(tokens = tokens)
         }
     }
+
+    fun toggleCurrency(code: String) {
+        _state.update { currentState ->
+            val currentList = currentState.activeCurrencies.toMutableList()
+
+            if (currentList.contains(code)) {
+                // Prevent removing the last currency
+                if (currentList.size > 1) currentList.remove(code)
+            } else {
+                currentList.add(code)
+            }
+
+            currentState.copy(activeCurrencies = currentList)
+        }
+    }
 }

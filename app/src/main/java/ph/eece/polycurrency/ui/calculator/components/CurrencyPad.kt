@@ -23,7 +23,7 @@ import ph.eece.polycurrency.ui.calculator.CalculatorEvent
 fun CurrencyPad(
     onEvent: (CalculatorEvent) -> Unit,
     modifier: Modifier = Modifier,
-    currencies: List<String> = listOf("USD", "PHP", "EUR", "JPY", "KRW", "GBP"), // Default/Fallback list
+    currencies: List<String>,
 ) {
 
     LazyRow(

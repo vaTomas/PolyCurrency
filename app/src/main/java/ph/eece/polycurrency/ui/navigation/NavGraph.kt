@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ph.eece.polycurrency.ui.calculator.CalculatorScreen
+import ph.eece.polycurrency.ui.currency.CurrencySelectionScreen
 
 @Composable
 fun NavGraph() {
@@ -14,10 +15,18 @@ fun NavGraph() {
         navController = navController,
         startDestination = "calculator"
     ) {
+        // Calculator Screen
         composable("calculator") {
-            CalculatorScreen()
+            CalculatorScreen(
+                onOpenCurrencySelector = { navController.navigate("currency_selection") }
+            )
         }
 
-        // TODO: Add "rates_settings" later
+        // Currency Selection Screen
+        composable("currency_selection") {
+            CurrencySelectionScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }

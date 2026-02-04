@@ -16,7 +16,8 @@ import ph.eece.polycurrency.ui.calculator.CalculatorKeypad
 
 @Composable
 fun CalculatorScreen(
-    viewModel: CalculatorViewModel = hiltViewModel() // Auto-injects the VM
+    viewModel: CalculatorViewModel = hiltViewModel(), // Auto-injects the VM
+    onOpenCurrencySelector: () -> Unit
 ) {
     // Collect the UI State from the ViewModel
     val state by viewModel.state.collectAsState()
@@ -65,6 +66,8 @@ fun CalculatorScreen(
         // Keypad
         CalculatorKeypad(
             onEvent = viewModel::onEvent,
+            activeCurrencies = state.activeCurrencies,
+            onManageCurrencies = onOpenCurrencySelector,
             modifier = Modifier.weight(0.5f)
         )
     }
