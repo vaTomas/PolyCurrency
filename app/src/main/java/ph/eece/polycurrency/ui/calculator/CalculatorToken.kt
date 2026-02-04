@@ -4,5 +4,5 @@ sealed class CalculatorToken {
     data class Number(val value: String) : CalculatorToken()
     data class Operator(val symbol: Char) : CalculatorToken()
     data class Currency(val code: String) : CalculatorToken()
-    // data class Parenthesis(val type: Char) : CalculatorToken() // TODO: Parenthisis Later
+    data class Parenthesis(val type: Char) : CalculatorToken()
 }

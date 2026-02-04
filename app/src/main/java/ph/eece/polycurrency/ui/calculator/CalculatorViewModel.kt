@@ -25,6 +25,7 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
             is CalculatorEvent.OnCurrency -> addCurrency(event.code)
             is CalculatorEvent.OnEvaluate -> { /* TODO */ }
             is CalculatorEvent.OnPercent -> addPercent()
+            is CalculatorEvent.OnSmartParenthesis -> addSmartParenthesis()
         }
     }
 
@@ -132,6 +133,37 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
 
             if (isValidPredecessor) {
                 tokens.add(CalculatorToken.Operator('%'))
+            }
+
+            currentState.copy(tokens = tokens)
+        }
+    }
+
+    private fun addSmartParenthesis() {
+        _state.update { currentState ->
+            val tokens = currentState.tokens.toMutableList()
+
+            // Count Parenthesis
+            val openCount = tokens.count { it is CalculatorToken.Parenthesis && it.type == '(' }
+            val closeCount = tokens.count { it is CalculatorToken.Parenthesis && it.type == ')' }
+            val parenthesisBalance = openCount - closeCount
+
+            val lastToken = tokens.lastOrNull()
+
+            val shouldOpen = when {
+                parenthesisBalance == 0 -> true
+
+                else -> when (lastToken) {
+                    is CalculatorToken.Operator -> true
+                    is CalculatorToken.Parenthesis -> lastToken.type == '('
+                    else -> false
+                }
+            }
+
+            if (shouldOpen) {
+                tokens.add(CalculatorToken.Parenthesis('('))
+            } else {
+                tokens.add(CalculatorToken.Parenthesis(')'))
             }
 
             currentState.copy(tokens = tokens)

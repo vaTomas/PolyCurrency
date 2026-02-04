@@ -23,7 +23,7 @@ fun NumberPad(
     Column(modifier = modifier) {
         Row(Modifier.weight(1f)) {
             CalculatorButton("AC", onClick={ onEvent(CalculatorEvent.OnClear) }, modifier=Modifier.weight(1f), backgroundColor = actionColor, textColor = Color.White)
-            CalculatorButton("( )", onClick={ /* TODO: Bracket Logic */ }, modifier=Modifier.weight(1f))
+            CalculatorButton("( )", onClick={ onEvent(CalculatorEvent.OnSmartParenthesis) }, modifier=Modifier.weight(1f))
             CalculatorButton("%", onClick={ onEvent(CalculatorEvent.OnPercent) }, modifier=Modifier.weight(1f))
             CalculatorButton("÷", onClick={ onEvent(CalculatorEvent.OnOperator('/')) }, modifier=Modifier.weight(1f), backgroundColor = operatorColor, textColor = operatorText)
         }

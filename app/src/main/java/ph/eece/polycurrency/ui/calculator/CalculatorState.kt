@@ -20,6 +20,7 @@ data class CalculatorState(
                     else -> token.symbol.toString()
                 }
                 is CalculatorToken.Currency -> token.code
+                is CalculatorToken.Parenthesis -> token.type.toString()
             }
         }
 
