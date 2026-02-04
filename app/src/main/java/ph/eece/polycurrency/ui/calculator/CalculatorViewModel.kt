@@ -17,15 +17,17 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
         when (event) {
             is CalculatorEvent.OnDigit -> {
                 if (event.digit == '.') addDecimal() else addNumber(event.digit)
+                calculateResult()
             }
-            is CalculatorEvent.OnOperator -> addOperator(event.op)
+            is CalculatorEvent.OnOperator -> { addOperator(event.op); calculateResult() }
 
             is CalculatorEvent.OnClear -> _state.update { CalculatorState() } // Reset
-            is CalculatorEvent.OnDelete -> { onDelete() }
-            is CalculatorEvent.OnCurrency -> { addCurrency(event.code) }
+            is CalculatorEvent.OnDelete -> { onDelete(); calculateResult() }
+            is CalculatorEvent.OnCurrency -> { addCurrency(event.code); calculateResult() }
             is CalculatorEvent.OnEvaluate -> { calculateResult() }
-            is CalculatorEvent.OnPercent -> { addPercent() }
-            is CalculatorEvent.OnSmartParenthesis -> { addSmartParenthesis() }
+            is CalculatorEvent.OnPercent -> { addPercent(); calculateResult() }
+            is CalculatorEvent.OnSmartParenthesis -> { addSmartParenthesis(); calculateResult() }
+            // TODO Change calculateResult() realtime implementation to reactive consequence
         }
     }
 
@@ -244,7 +246,7 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
                 0.0 // Fail safe
             }
 
-            val resultString = "PHP " + String.format("%,.2f", rawResult) // TODO Make programable
+            val resultString = "PHP " + String.format("%,.2f", rawResult) // TODO Make programmable
 
             currentState.copy(liveResult = resultString)
         }
