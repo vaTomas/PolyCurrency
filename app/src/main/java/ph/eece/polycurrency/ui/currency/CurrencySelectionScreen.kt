@@ -1,6 +1,8 @@
 package ph.eece.polycurrency.ui.currency
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ph.eece.polycurrency.ui.calculator.CalculatorViewModel
 
@@ -37,24 +40,11 @@ fun CurrencySelectionScreen(
     onBack: () -> Unit,
     viewModel: CalculatorViewModel = hiltViewModel()
 ) {
-    // We observe the same ViewModel to get the lists
+    // Observe the same ViewModel to get lists
     val state by viewModel.state.collectAsState()
 
-    // Temporary list of world TODO Integrate later with DB)
-    val allCurrencies = listOf(
-        "USD" to "United States Dollar",
-        "PHP" to "Philippine Peso",
-        "EUR" to "Euro",
-        "JPY" to "Japanese Yen",
-        "GBP" to "British Pound",
-        "AUD" to "Australian Dollar",
-        "CAD" to "Canadian Dollar",
-        "CHF" to "Swiss Franc",
-        "CNY" to "Chinese Yuan",
-        "KRW" to "South Korean Won",
-        "SGD" to "Singapore Dollar",
-        "VND" to "Vietnamese Dong"
-    )
+    // Group data by first letter of Country
+    val groupedCurrencies = worldCurrencies.groupBy { it.country.first().uppercaseChar() }
 
     Scaffold(
         topBar = {
@@ -73,35 +63,64 @@ fun CurrencySelectionScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            items(allCurrencies) { (code, name) ->
-                val isSelected = state.activeCurrencies.contains(code)
+            // Loop through the grouped data
+            groupedCurrencies.forEach { (initial, currencies) ->
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { viewModel.toggleCurrency(code) } // We will add this function
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = isSelected,
-                        onCheckedChange = { viewModel.toggleCurrency(code) }
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
+                stickyHeader {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceContainer) // Slightly distinct background
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
                         Text(
-                            text = code,
+                            text = initial.toString(),
                             style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-                HorizontalDivider()
+
+                items(currencies) { currency ->
+                    val isSelected = state.activeCurrencies.contains(currency.code)
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { viewModel.toggleCurrency(currency.code) }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = isSelected,
+                            onCheckedChange = { viewModel.toggleCurrency(currency.code) }
+                        )
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        // Currency Code & Name
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = currency.code,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = currency.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        // Flag
+                        Text(
+                            text = currency.flagEmoji,
+                            fontSize = 32.sp
+                        )
+                    }
+                    HorizontalDivider(modifier = Modifier.padding(start = 56.dp)) // Indented divider
+                }
             }
         }
     }
