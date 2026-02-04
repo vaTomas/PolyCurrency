@@ -25,3 +25,13 @@ val worldCurrencies = listOf(
     CurrencyData("PHP", "Philippine Peso", "Philippines", "🇵🇭"),
     CurrencyData("VND", "Vietnamese Dong", "Vietnam", "🇻🇳")
 ).sortedBy { it.country } // Pre-sort by Country name
+
+
+fun filterCurrencies(query: String, list: List<CurrencyData>): List<CurrencyData> {
+    if (query.isBlank()) return list
+    val cleanQuery = query.trim().lowercase()
+    return list.filter {
+        it.code.lowercase().contains(cleanQuery) ||
+                it.name.lowercase().contains(cleanQuery)
+    }
+}
