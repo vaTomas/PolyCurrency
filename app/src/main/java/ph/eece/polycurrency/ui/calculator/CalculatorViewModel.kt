@@ -21,7 +21,7 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
             is CalculatorEvent.OnOperator -> addOperator(event.op)
 
             is CalculatorEvent.OnClear -> _state.update { CalculatorState() } // Reset
-            is CalculatorEvent.OnDelete -> { /* TODO */ }
+            is CalculatorEvent.OnDelete -> { onDelete() }
             is CalculatorEvent.OnCurrency -> addCurrency(event.code)
             is CalculatorEvent.OnEvaluate -> { /* TODO */ }
             is CalculatorEvent.OnPercent -> addPercent()
@@ -201,6 +201,34 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
                     tokens.add(tokens.lastIndex, CalculatorToken.Currency(code))
                 }
             }
+            currentState.copy(tokens = tokens)
+        }
+    }
+
+    private fun onDelete() {
+        _state.update { currentState ->
+            val tokens = currentState.tokens.toMutableList()
+            val lastToken = tokens.lastOrNull()
+
+            if (lastToken != null) {
+                // If Number
+                if (lastToken is CalculatorToken.Number) {
+                    // Drop last char.
+                    val newValue = lastToken.value.dropLast(1)
+
+                    if (newValue.isEmpty()) {
+                        // If resulting number is empty, delee token
+                        tokens.removeAt(tokens.lastIndex)
+                    } else {
+                        // If number remains, update
+                        tokens[tokens.lastIndex] = lastToken.copy(value = newValue)
+                    }
+                } else {
+                    // If not Number, delete token
+                    tokens.removeAt(tokens.lastIndex)
+                }
+            }
+
             currentState.copy(tokens = tokens)
         }
     }
