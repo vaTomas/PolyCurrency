@@ -22,10 +22,10 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
 
             is CalculatorEvent.OnClear -> _state.update { CalculatorState() } // Reset
             is CalculatorEvent.OnDelete -> { onDelete() }
-            is CalculatorEvent.OnCurrency -> addCurrency(event.code)
-            is CalculatorEvent.OnEvaluate -> { /* TODO */ }
-            is CalculatorEvent.OnPercent -> addPercent()
-            is CalculatorEvent.OnSmartParenthesis -> addSmartParenthesis()
+            is CalculatorEvent.OnCurrency -> { addCurrency(event.code) }
+            is CalculatorEvent.OnEvaluate -> { calculateResult() }
+            is CalculatorEvent.OnPercent -> { addPercent() }
+            is CalculatorEvent.OnSmartParenthesis -> { addSmartParenthesis() }
         }
     }
 
@@ -230,6 +230,23 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
             }
 
             currentState.copy(tokens = tokens)
+        }
+    }
+
+    private fun calculateResult() {
+        _state.update { currentState ->
+            val tokens = currentState.tokens
+            val currencyData = ph.eece.polycurrency.ui.currency.worldCurrencies
+
+            val rawResult = try {
+                MathEngine.evaluate(tokens, currencyData)
+            } catch (e: Exception) {
+                0.0 // Fail safe
+            }
+
+            val resultString = "PHP " + String.format("%,.2f", rawResult) // TODO Make programable
+
+            currentState.copy(liveResult = resultString)
         }
     }
 
