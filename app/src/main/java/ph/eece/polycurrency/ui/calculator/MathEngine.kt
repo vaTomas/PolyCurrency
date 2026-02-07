@@ -83,6 +83,7 @@ object MathEngine {
         val operatorStack = Stack<MathToken>()
 
         val precedence = mapOf(
+            'Δ' to 0,
             '+' to 1, '-' to 1,
             '*' to 2, '/' to 2
         )
@@ -136,6 +137,7 @@ object MathEngine {
                         '-' -> a - b
                         '*' -> a * b
                         '/' -> if (b != 0.0) a / b else 0.0 // No dev by zero
+                        'Δ' -> if (a != 0.0) (b - a) / a else 0.0
                         else -> 0.0
                     }
                     stack.push(result)

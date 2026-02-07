@@ -18,6 +18,7 @@ data class CalculatorState(
                 is CalculatorToken.Operator -> when (token.symbol) {
                     '/' -> "÷"
                     '*' -> "×"
+                    'Δ' -> "Δ%"
                     else -> token.symbol.toString()
                 }
                 is CalculatorToken.Currency -> token.code
