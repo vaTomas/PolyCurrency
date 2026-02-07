@@ -9,4 +9,5 @@ sealed class CalculatorEvent {
     object OnEvaluate : CalculatorEvent()
     object  OnPercent : CalculatorEvent()
     object OnSmartParenthesis : CalculatorEvent()
+    object OnToggleHistory : CalculatorEvent()
 }

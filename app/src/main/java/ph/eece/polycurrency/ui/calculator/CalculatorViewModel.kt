@@ -28,6 +28,9 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
             is CalculatorEvent.OnPercent -> { addPercent(); calculateResult() }
             is CalculatorEvent.OnSmartParenthesis -> { addSmartParenthesis(); calculateResult() }
             // TODO Change calculateResult() realtime implementation to reactive consequence
+            is CalculatorEvent.OnToggleHistory -> {
+                _state.update { it.copy(isHistoryOpen = !it.isHistoryOpen) }
+            }
         }
     }
 
