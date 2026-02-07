@@ -47,7 +47,7 @@ fun CalculatorScreen(
 
                 // The Live Result
                 Text(
-                    text = state.liveResult.ifEmpty { "≈ 0.00 PHP" },
+                    text = state.liveResult.ifEmpty { "PHP 0.00" }, // TODO Make dynamic
                     style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
