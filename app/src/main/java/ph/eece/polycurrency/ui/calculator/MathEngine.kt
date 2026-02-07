@@ -40,11 +40,11 @@ object MathEngine {
 
             // Special Case for parenthesis
             if (token is CalculatorToken.Parenthesis && token.type == '(' && isPrevValue) {
-                result.add(MathToken.Op('*'))
+                result.add(MathToken.Op('#')) // 5( -> 5 # (
             }
             // Standard Implicit Multiplication
             else if (isCurrentValue && isPrevValue) {
-                result.add(MathToken.Op('*'))
+                result.add(MathToken.Op('#'))
             }
 
 
@@ -62,7 +62,7 @@ object MathEngine {
                 is CalculatorToken.Operator -> {
                     if (token.symbol == '%') {
                         // Treat percent as "* 0.01"
-                        result.add(MathToken.Op('*'))
+                        result.add(MathToken.Op('#'))
                         result.add(MathToken.Num(0.01))
                     } else {
                         result.add(MathToken.Op(token.symbol))
@@ -85,7 +85,8 @@ object MathEngine {
         val precedence = mapOf(
             'Δ' to 0,
             '+' to 1, '-' to 1,
-            '*' to 2, '/' to 2
+            '*' to 2, '/' to 2,
+            '#' to 3
         )
 
         for (token in tokens) {
@@ -137,6 +138,7 @@ object MathEngine {
                         '-' -> a - b
                         '*' -> a * b
                         '/' -> if (b != 0.0) a / b else 0.0 // No dev by zero
+                        '#' -> a * b
                         'Δ' -> if (a != 0.0) (b - a) / a else 0.0
                         else -> 0.0
                     }
