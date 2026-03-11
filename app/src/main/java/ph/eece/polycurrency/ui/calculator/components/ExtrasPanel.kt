@@ -45,7 +45,8 @@ fun ExtrasPanel(
         // ow 2: Custom Operations
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             val ops = listOf('Δ', '√', '(', ')')
             ops.forEach { op ->

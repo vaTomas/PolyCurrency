@@ -11,19 +11,13 @@ object MathEngine {
         baseCurrencyCode: String
     ): Double {
         // Convert CalculatorTokens to a pure math list (handling implicit mults and scalars)
-        val normalizedTokens = normalizeTokens(tokens, currencyDataList, targetCurrencyCode, baseCurrencyCode)
+        val normalizedTokens = normalizeTokens(tokens, currencyDataList, targetCurrencyCode)
 
         // Convert Infix to RPN
         val rpnQueue = shuntingYard(normalizedTokens)
 
         // Solve the RPN
-        val resultInBase = solveRPN(rpnQueue)
-
-        val rateMap = currencyDataList.associate { it.currencyCode to it.rateRelativeToBase }
-        val targetRate = rateMap[targetCurrencyCode] ?: 1.0
-        val baseRate = rateMap[baseCurrencyCode] ?: 1.0
-
-        return resultInBase * (targetRate / baseRate)
+        return solveRPN(rpnQueue)
     }
 
     // Normalize Tokens
@@ -31,13 +25,13 @@ object MathEngine {
     private fun normalizeTokens(
         tokens: List<CalculatorToken>,
         currencyDataList: List<ExchangeRateEntity>,
-        targetCurrencyCode: String,
-        baseCurrencyCode: String
+        targetCurrencyCode: String
     ): List<MathToken> {
         val result = mutableListOf<MathToken>()
         // Rates lookup map
         val rateMap = currencyDataList.associate { it.currencyCode to it.rateRelativeToBase }
-        val baseRate = rateMap[baseCurrencyCode] ?: 1.0
+
+        val targetRate = rateMap[targetCurrencyCode] ?: 1.0
 
         tokens.forEachIndexed { index, token ->
             val prevToken = tokens.getOrNull(index - 1)
@@ -66,8 +60,8 @@ object MathEngine {
                 is CalculatorToken.Currency -> {
                     // Value = (Rate)^-1
                     val tokenRate = rateMap[token.code] ?: 1.0
-                    val valueInBase = if (tokenRate != 0.0) baseRate / tokenRate else 0.0
-                    result.add(MathToken.Num(valueInBase))
+                    val scalarRatio = if (tokenRate != 0.0) targetRate / tokenRate else 0.0
+                    result.add(MathToken.Num(scalarRatio))
                 }
 
                 // Number and Currency Normalization
@@ -76,15 +70,7 @@ object MathEngine {
                 // Format is always "USD 100"
                 is CalculatorToken.Number -> {
                     val rawValue = token.value.toDoubleOrNull() ?: 0.0
-                    val prevToken = tokens.getOrNull(index - 1)
-
-                    if (prevToken is CalculatorToken.Currency) {
-                        result.add(MathToken.Num(rawValue))
-                    } else {
-                        val targetRate = rateMap[targetCurrencyCode] ?: 1.0
-                        val valueInBase = rawValue * (baseRate / targetRate)
-                        result.add(MathToken.Num(valueInBase))
-                    }
+                    result.add(MathToken.Num(rawValue))
                 }
 
 
