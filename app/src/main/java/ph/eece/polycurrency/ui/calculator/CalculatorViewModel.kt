@@ -9,10 +9,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import ph.eece.polycurrency.data.CurrencyRepository
+import ph.eece.polycurrency.data.UserPreferencesRepository
 
 @HiltViewModel
 class CalculatorViewModel @Inject constructor(
-    private val repository: CurrencyRepository
+    private val repository: CurrencyRepository,
+    private val prefsRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CalculatorState())
@@ -33,6 +35,12 @@ class CalculatorViewModel @Inject constructor(
         // 2. Background Poll internet for fresh rates
         viewModelScope.launch {
             repository.syncRates(backendBase = "PHP")
+        }
+
+        viewModelScope.launch {
+            prefsRepository.activeCurrenciesFlow.collect { savedCurrencies ->
+                _state.update { it.copy(activeCurrencies = savedCurrencies) }
+            }
         }
     }
 
@@ -62,14 +70,19 @@ class CalculatorViewModel @Inject constructor(
                 calculateResult()
             }
             is CalculatorEvent.OnToggleActiveCurrency -> {
+                val currentList = _state.value.activeCurrencies.toMutableList()
+                if (currentList.contains(event.code)) {
+                    currentList.remove(event.code) // Uncheck
+                } else {
+                    currentList.add(event.code)    // Check
+                }
+
                 _state.update { currentState ->
-                    val currentList = currentState.activeCurrencies.toMutableList()
-                    if (currentList.contains(event.code)) {
-                        currentList.remove(event.code) // Uncheck
-                    } else {
-                        currentList.add(event.code)    // Check
-                    }
                     currentState.copy(activeCurrencies = currentList)
+                }
+
+                viewModelScope.launch {
+                    prefsRepository.saveActiveCurrencies(currentList)
                 }
             }
         }

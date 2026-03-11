@@ -9,6 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ph.eece.polycurrency.data.CurrencyRepository
+import ph.eece.polycurrency.data.UserPreferencesRepository
 import ph.eece.polycurrency.data.local.AppDatabase
 import ph.eece.polycurrency.data.local.CurrencyDao
 import ph.eece.polycurrency.data.remote.FrankfurterApi
@@ -63,5 +64,12 @@ object AppModule {
         dao: CurrencyDao
     ): CurrencyRepository {
         return CurrencyRepository(api, dao)
+    }
+
+    // Preferences User Settings
+    @Provides
+    @Singleton
+    fun provideUserPreferencesRepository(@ApplicationContext context: Context): UserPreferencesRepository {
+        return UserPreferencesRepository(context)
     }
 }
