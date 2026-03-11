@@ -11,7 +11,7 @@ data class CalculatorState(
 
     // UI Toggles
     val isHistoryOpen: Boolean = false,
-    val isExtrasOpen: Boolean = false,
+    val isExtrasOpen: Boolean = true,
 
     val targetCurrencyCode: String = UserPreferencesRepository.DEFAULT_TARGET,
     val baseCurrencyCode: String = UserPreferencesRepository.DEFAULT_BASE,

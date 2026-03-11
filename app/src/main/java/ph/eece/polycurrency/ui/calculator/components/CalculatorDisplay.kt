@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -55,14 +56,14 @@ fun CalculatorDisplay(
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.End
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.SpaceEvenly
     ) {
         // Equation Display
         EquationDisplay(expression = expression)
 
-        Spacer(modifier = Modifier.height(12.dp))
 
         // Result Display
         Row(
@@ -156,7 +157,7 @@ fun EquationDisplay(expression: String) {
     ) {
         Text(
             text = expression.ifEmpty { " " },
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             softWrap = false,
@@ -182,7 +183,7 @@ fun ResultDisplay(
     ) {
         Text(
             text = result.ifEmpty { "$currencySymbol 0.00" },
-            style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.primary,
             maxLines = 1,
             softWrap = false,
