@@ -12,4 +12,5 @@ sealed class CalculatorEvent {
     object OnToggleHistory : CalculatorEvent()
     object OnToggleExtras : CalculatorEvent()
     data class OnChangeTargetCurrency(val code: String) : CalculatorEvent()
+    data class OnToggleActiveCurrency(val code: String) : CalculatorEvent()
 }

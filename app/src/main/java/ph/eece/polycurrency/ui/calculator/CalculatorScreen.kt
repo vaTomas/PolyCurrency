@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.ui.graphics.RectangleShape
 import ph.eece.polycurrency.ui.calculator.components.CalculatorDisplay
 import ph.eece.polycurrency.ui.calculator.components.CalculatorHeader
@@ -39,85 +40,103 @@ fun CalculatorScreen(
 
     val buttonShape = if (state.isExtrasOpen) CircleShape else CircleShape
     val buttonAspectRatio = if (state.isExtrasOpen) 1f else 1f
+    Scaffold(
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding)
+        ) {
 
-        // Header
-        CalculatorHeader(
-            isHistoryOpen = state.isHistoryOpen,
-            onToggleHistory = { viewModel.onEvent(CalculatorEvent.OnToggleHistory) },
-            onMoreOptions = {}
-        )
+//            // Header
+//            CalculatorHeader(
+//                isHistoryOpen = state.isHistoryOpen,
+//                onToggleHistory = { viewModel.onEvent(CalculatorEvent.OnToggleHistory) },
+//                onMoreOptions = {}
+//            )
+//
+//            // History
+//            AnimatedVisibility(visible = state.isHistoryOpen) {
+//                Box(Modifier
+//                    .fillMaxWidth()
+//                    .height(150.dp)
+//                    .background(MaterialTheme.colorScheme.surfaceVariant)
+//                ) {
+//                    Text("History coming soon...", Modifier.align(Alignment.Center))
+//                }
+//            }
 
-        // History
-        AnimatedVisibility(visible = state.isHistoryOpen) {
-            Box(Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+            // Top Half
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                verticalArrangement = Arrangement.Bottom
             ) {
-                Text("History coming soon...", Modifier.align(Alignment.Center))
+                CalculatorDisplay(
+                    expression = state.inputExpression,
+                    result = state.liveResult,
+                    targetCurrencyCode = state.targetCurrencyCode,
+                    activeCurrencies = state.activeCurrencies,
+                    onCurrencySelected = { selectedCode ->
+                        viewModel.onEvent(CalculatorEvent.OnChangeTargetCurrency(selectedCode))
+                    }
+                )
             }
-        }
 
-        // Live Result
-        Spacer(Modifier.weight(1f))
-        CalculatorDisplay(
-            expression = state.inputExpression,
-            result = state.liveResult,
-            targetCurrencyCode = state.targetCurrencyCode,
-            onTargetClick = {
-                // TODO Make searchable
-                val next = if (state.targetCurrencyCode == "PHP") "USD" else "PHP"
-                viewModel.onEvent(CalculatorEvent.OnChangeTargetCurrency(next))
+            // Bottom Half
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(4.236f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+//                // Extras Toggle
+//                IconButton(
+//                    onClick = { viewModel.onEvent(CalculatorEvent.OnToggleExtras) },
+//                    modifier = Modifier.align(Alignment.CenterHorizontally)
+//                ) {
+//                    Icon(
+//                        imageVector = if (state.isExtrasOpen) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+//                        contentDescription = "Toggle Extras",
+//                        tint = MaterialTheme.colorScheme.primary
+//                    )
+//                }
+
+                // Extras Keypad
+                AnimatedVisibility(visible = state.isExtrasOpen) {
+                    ExtrasPanel(
+                        currencies = state.activeCurrencies,
+                        onEvent = viewModel::onEvent,
+                        onManageCurrencies = onOpenCurrencySelector
+                    )
+                }
+
+
+//                // Input Editor
+//                CalculatorInput(
+//                    value = state.inputExpression,
+//                    onValueChange = { /* TODO: Handle input changes */ },
+//                    modifier = Modifier
+//                        .weight(0.15f)
+//                        .background(MaterialTheme.colorScheme.surfaceVariant)
+//                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
+                ) {
+                    NumberPad(
+                        onEvent = viewModel::onEvent,
+                        buttonShape = buttonShape,       // <--- Dynamic Shape passed here
+                        buttonAspectRatio = buttonAspectRatio // <--- Dynamic Ratio passed here
+                    )
+                }
             }
-        )
-
-        // Extras Toggle
-        IconButton(
-            onClick = { viewModel.onEvent(CalculatorEvent.OnToggleExtras) },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        ) {
-            Icon(
-                imageVector = if (state.isExtrasOpen) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                contentDescription = "Toggle Extras",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        // Extras Keypad
-        AnimatedVisibility(visible = state.isExtrasOpen) {
-            ExtrasPanel(
-                currencies = state.activeCurrencies,
-                onCurrencyClick = { viewModel.onEvent(CalculatorEvent.OnCurrency(it)) },
-                onOperationClick = { viewModel.onEvent(CalculatorEvent.OnOperator(it)) }
-            )
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        // Input Editor
-        CalculatorInput(
-            value = state.inputExpression,
-            onValueChange = { /* TODO: Handle input changes */ },
-            modifier = Modifier
-                .weight(0.15f)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        )
-
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 16.dp)
-        ) {
-            NumberPad(
-                onEvent = viewModel::onEvent,
-                buttonShape = buttonShape,       // <--- Dynamic Shape passed here
-                buttonAspectRatio = buttonAspectRatio // <--- Dynamic Ratio passed here
-            )
         }
     }
 }

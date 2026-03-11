@@ -1,17 +1,64 @@
 package ph.eece.polycurrency.ui.calculator
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
+import ph.eece.polycurrency.data.CurrencyRepository
+import ph.eece.polycurrency.data.UserPreferencesRepository
 
 @HiltViewModel
-class CalculatorViewModel @Inject constructor() : ViewModel() {
+class CalculatorViewModel @Inject constructor(
+    private val repository: CurrencyRepository,
+    private val prefsRepository: UserPreferencesRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(CalculatorState())
     val state = _state.asStateFlow()
+
+    init {
+        // Listen to the Local Database continuously
+        viewModelScope.launch {
+            repository.allRates.collect { databaseRates ->
+                // Every time DB change, update  state
+                _state.update { it.copy(currencyRates = databaseRates) }
+
+                // Recalculate  result immediately so the UI updates if rates changed
+                calculateResult()
+            }
+        }
+
+        // Background Poll internet for fresh rates
+        viewModelScope.launch {
+            repository.syncRates()
+        }
+
+        viewModelScope.launch {
+            prefsRepository.activeCurrenciesFlow.collect { savedCurrencies ->
+                _state.update { it.copy(activeCurrencies = savedCurrencies) }
+            }
+        }
+
+        // Listen to the Target Currency Flow
+        viewModelScope.launch {
+            prefsRepository.targetCurrencyFlow.collect { savedTarget ->
+                _state.update { it.copy(targetCurrencyCode = savedTarget) }
+                calculateResult() // Recalculate math whenever the target changes
+            }
+        }
+
+        // Listen to the Base Currency Flow
+        viewModelScope.launch {
+            prefsRepository.baseCurrencyFlow.collect { savedBase ->
+                _state.update { it.copy(baseCurrencyCode = savedBase) }
+                calculateResult() // Recalculate if the math hub changes
+            }
+        }
+    }
 
     fun onEvent(event: CalculatorEvent) {
         when (event) {
@@ -21,23 +68,38 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
             }
             is CalculatorEvent.OnOperator -> { addOperator(event.op); calculateResult() }
 
-            is CalculatorEvent.OnClear -> _state.update { CalculatorState() } // Reset
+            is CalculatorEvent.OnClear -> { onClear() } // Reset
             is CalculatorEvent.OnDelete -> { onDelete(); calculateResult() }
             is CalculatorEvent.OnCurrency -> { addCurrency(event.code); calculateResult() }
             is CalculatorEvent.OnEvaluate -> { calculateResult() }
             is CalculatorEvent.OnPercent -> { addPercent(); calculateResult() }
             is CalculatorEvent.OnSmartParenthesis -> { addSmartParenthesis(); calculateResult() }
-            // TODO Change calculateResult() realtime implementation to reactive consequence
             is CalculatorEvent.OnToggleHistory -> {
                 _state.update { it.copy(isHistoryOpen = !it.isHistoryOpen) }
             }
             is CalculatorEvent.OnToggleExtras -> {
                 _state.update { it.copy(isExtrasOpen = !it.isExtrasOpen) }
             }
-            is CalculatorEvent.OnChangeTargetCurrency -> {
-                _state.update { it.copy(targetCurrencyCode = event.code) }
-                calculateResult()
+
+            is CalculatorEvent.OnChangeTargetCurrency -> { onChangeTargetCurrency(event.code) }
+
+            is CalculatorEvent.OnToggleActiveCurrency -> {
+                val currentList = _state.value.activeCurrencies.toMutableList()
+                if (currentList.contains(event.code)) {
+                    currentList.remove(event.code) // Uncheck
+                } else {
+                    currentList.add(event.code)    // Check
+                }
+
+                _state.update { currentState ->
+                    currentState.copy(activeCurrencies = currentList)
+                }
+
+                viewModelScope.launch {
+                    prefsRepository.saveActiveCurrencies(currentList)
+                }
             }
+
         }
     }
 
@@ -245,19 +307,61 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
         }
     }
 
+    private fun onClear() {
+        _state.update { currentState ->
+            currentState.copy(
+                tokens = emptyList(),
+                liveResult = ""
+            )
+        }
+    }
+
+    private fun onChangeTargetCurrency(code: String) {
+        // Update the UI immediately
+        _state.update { it.copy(targetCurrencyCode = code) }
+
+        // Recalculate the math
+        calculateResult()
+
+        // Save the choice to the physical device in the background
+        viewModelScope.launch {
+            prefsRepository.saveTargetCurrency(code)
+        }
+    }
+
     private fun calculateResult() {
         _state.update { currentState ->
-            val tokens = currentState.tokens
-            val currencyData = ph.eece.polycurrency.ui.currency.worldCurrencies
-            val rawResult = try {
-                MathEngine.evaluate(tokens, currencyData)
+            if (currentState.tokens.isEmpty()) return@update currentState.copy(liveResult = "")
+
+            // Use the rates from the database.
+            val currentRates = currentState.currencyRates
+
+            // If the database is empty (first launch, no internet), just return 0.0 or wait.
+            if (currentRates.isEmpty()) return@update currentState.copy(liveResult = "Updating...")
+
+            // Math Engine
+            val finalResult = try {
+                MathEngine.evaluate(
+                    tokens = currentState.tokens,
+                    currencyDataList = currentRates,
+                    targetCurrencyCode = currentState.targetCurrencyCode,
+                    baseCurrencyCode = currentState.baseCurrencyCode // Pass the new dynamic base!
+                )
             } catch (e: Exception) {
-                0.0 // Fail safe
+                0.0
             }
 
-            val symbol = getSymbolFor(currentState.targetCurrencyCode)
-            val resultString = "$symbol " + String.format("%,.2f", rawResult) // TODO Make programmable
+            // Code to Symbol "USD" -> "$"
+            val currencySymbol = try {
+                java.util.Currency.getInstance(currentState.targetCurrencyCode).symbol
+            } catch (e: Exception) {
+                // Default to code if no symbol
+                currentState.targetCurrencyCode
+            }
 
+            val resultString = "$currencySymbol " + String.format("%,.2f", finalResult)
+
+            // Update the UI
             currentState.copy(liveResult = resultString)
         }
     }

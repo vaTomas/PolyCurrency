@@ -22,41 +22,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ph.eece.polycurrency.ui.calculator.CalculatorEvent
 
 @Composable
 fun ExtrasPanel(
     currencies: List<String>,
-    onCurrencyClick: (String) -> Unit,
-    onOperationClick: (Char) -> Unit
+    onEvent: (CalculatorEvent) -> Unit,
+    onManageCurrencies: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        // Row 1: Currencies (Horizontal Scroll)
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(currencies) { code ->
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50)) // Capsule
-                        .background(MaterialTheme.colorScheme.secondaryContainer)
-                        .clickable { onCurrencyClick(code) }
-                        .padding(horizontal = 16.dp, vertical = 10.dp)
-                ) {
-                    Text(code, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                }
-            }
 
-        }
+        // Row 1: Currencies
+        CurrencyPad(
+            currencies = currencies,
+            onEvent = onEvent,
+            onManageCurrencies = onManageCurrencies,
+            modifier = Modifier
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Row 2: Custom Operations (Static Row)
+        // ow 2: Custom Operations
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Custom Operations
             val ops = listOf('Δ', '√', '(', ')')
             ops.forEach { op ->
                 Box(
@@ -64,11 +55,16 @@ fun ExtrasPanel(
                         .weight(1f)
                         .clip(RoundedCornerShape(50)) // Capsule
                         .background(MaterialTheme.colorScheme.tertiaryContainer)
-                        .clickable { onOperationClick(op) }
+                        .clickable { onEvent(CalculatorEvent.OnOperator(op)) } // <--- Trigger standard operator event
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(op.toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = op.toString(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
                 }
             }
         }

@@ -1,15 +1,17 @@
 package ph.eece.polycurrency.ui.calculator
 
-import ph.eece.polycurrency.ui.currency.CurrencyData
 import java.util.Stack
+import ph.eece.polycurrency.data.local.entity.ExchangeRateEntity
 
 object MathEngine {
     fun evaluate(
         tokens: List<CalculatorToken>,
-        currencyDataList: List<CurrencyData>
+        currencyDataList: List<ExchangeRateEntity>,
+        targetCurrencyCode: String,
+        baseCurrencyCode: String
     ): Double {
         // Convert CalculatorTokens to a pure math list (handling implicit mults and scalars)
-        val normalizedTokens = normalizeTokens(tokens, currencyDataList)
+        val normalizedTokens = normalizeTokens(tokens, currencyDataList, targetCurrencyCode)
 
         // Convert Infix to RPN
         val rpnQueue = shuntingYard(normalizedTokens)
@@ -22,11 +24,14 @@ object MathEngine {
     // Convert Currencies and Percents into Scalar Coefficients
     private fun normalizeTokens(
         tokens: List<CalculatorToken>,
-        currencyDataList: List<CurrencyData>
+        currencyDataList: List<ExchangeRateEntity>,
+        targetCurrencyCode: String
     ): List<MathToken> {
         val result = mutableListOf<MathToken>()
         // Rates lookup map
-        val rateMap = currencyDataList.associate { it.code to it.rateToPHP }
+        val rateMap = currencyDataList.associate { it.currencyCode to it.rateRelativeToBase }
+
+        val targetRate = rateMap[targetCurrencyCode] ?: 1.0
 
         tokens.forEachIndexed { index, token ->
             val prevToken = tokens.getOrNull(index - 1)
@@ -50,24 +55,35 @@ object MathEngine {
 
             // Convert Tokens
             when (token) {
-                is CalculatorToken.Number -> {
-                    result.add(MathToken.Num(token.value.toDoubleOrNull() ?: 0.0))
-                }
+                // Currency Residue for Redundancy
+                // Currencies should act as constant tokens or digits. USD + EUR
                 is CalculatorToken.Currency -> {
                     // Value = (Rate)^-1
-                    val rate = rateMap[token.code] ?: 1.0
-                    val scalarValue = if (rate != 0.0) 1.0 / rate else 0.0
-                    result.add(MathToken.Num(scalarValue))
+                    val tokenRate = rateMap[token.code] ?: 1.0
+                    val scalarRatio = if (tokenRate != 0.0) targetRate / tokenRate else 0.0
+                    result.add(MathToken.Num(scalarRatio))
                 }
+
+                // Number and Currency Normalization
+                // Numbers with no currency shall be treated as currency to the target currency
+                // relative to base currency
+                // Format is always "USD 100"
+                is CalculatorToken.Number -> {
+                    val rawValue = token.value.toDoubleOrNull() ?: 0.0
+                    result.add(MathToken.Num(rawValue))
+                }
+
+
+
                 is CalculatorToken.Operator -> {
                     if (token.symbol == '%') {
-                        // Treat percent as "* 0.01"
                         result.add(MathToken.Op('#'))
                         result.add(MathToken.Num(0.01))
                     } else {
                         result.add(MathToken.Op(token.symbol))
                     }
                 }
+
                 is CalculatorToken.Parenthesis -> {
                     if (token.type == '(') result.add(MathToken.LeftParen)
                     else result.add(MathToken.RightParen)
