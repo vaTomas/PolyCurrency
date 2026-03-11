@@ -70,10 +70,9 @@ fun CalculatorScreen(
             expression = state.inputExpression,
             result = state.liveResult,
             targetCurrencyCode = state.targetCurrencyCode,
-            onTargetClick = {
-                // TODO Make searchable
-                val next = if (state.targetCurrencyCode == "PHP") "USD" else "PHP"
-                viewModel.onEvent(CalculatorEvent.OnChangeTargetCurrency(next))
+            activeCurrencies = state.activeCurrencies,
+            onCurrencySelected = { selectedCode ->
+                viewModel.onEvent(CalculatorEvent.OnChangeTargetCurrency(selectedCode))
             }
         )
 

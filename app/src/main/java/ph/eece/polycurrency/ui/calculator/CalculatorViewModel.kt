@@ -21,7 +21,7 @@ class CalculatorViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        // 1. Listen to the Local Database continuously
+        // Listen to the Local Database continuously
         viewModelScope.launch {
             repository.allRates.collect { databaseRates ->
                 // Every time DB change, update  state
@@ -32,7 +32,7 @@ class CalculatorViewModel @Inject constructor(
             }
         }
 
-        // 2. Background Poll internet for fresh rates
+        // Background Poll internet for fresh rates
         viewModelScope.launch {
             repository.syncRates(backendBase = "PHP")
         }
@@ -40,6 +40,14 @@ class CalculatorViewModel @Inject constructor(
         viewModelScope.launch {
             prefsRepository.activeCurrenciesFlow.collect { savedCurrencies ->
                 _state.update { it.copy(activeCurrencies = savedCurrencies) }
+            }
+        }
+
+        // Listen to the Target Currency Flow
+        viewModelScope.launch {
+            prefsRepository.targetCurrencyFlow.collect { savedTarget ->
+                _state.update { it.copy(targetCurrencyCode = savedTarget) }
+                calculateResult() // Recalculate math whenever the target changes
             }
         }
     }
@@ -65,10 +73,9 @@ class CalculatorViewModel @Inject constructor(
             is CalculatorEvent.OnToggleExtras -> {
                 _state.update { it.copy(isExtrasOpen = !it.isExtrasOpen) }
             }
-            is CalculatorEvent.OnChangeTargetCurrency -> {
-                _state.update { it.copy(targetCurrencyCode = event.code) }
-                calculateResult()
-            }
+
+            is CalculatorEvent.OnChangeTargetCurrency -> { onChangeTargetCurrency(event.code) }
+
             is CalculatorEvent.OnToggleActiveCurrency -> {
                 val currentList = _state.value.activeCurrencies.toMutableList()
                 if (currentList.contains(event.code)) {
@@ -85,6 +92,7 @@ class CalculatorViewModel @Inject constructor(
                     prefsRepository.saveActiveCurrencies(currentList)
                 }
             }
+
         }
     }
 
@@ -298,6 +306,19 @@ class CalculatorViewModel @Inject constructor(
                 tokens = emptyList(),
                 liveResult = ""
             )
+        }
+    }
+
+    private fun onChangeTargetCurrency(code: String) {
+        // Update the UI immediately
+        _state.update { it.copy(targetCurrencyCode = code) }
+
+        // Recalculate the math
+        calculateResult()
+
+        // Save the choice to the physical device in the background
+        viewModelScope.launch {
+            prefsRepository.saveTargetCurrency(code)
         }
     }
 
