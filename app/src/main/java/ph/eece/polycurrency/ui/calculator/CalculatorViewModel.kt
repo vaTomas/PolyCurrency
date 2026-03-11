@@ -66,7 +66,6 @@ class CalculatorViewModel @Inject constructor(
             is CalculatorEvent.OnEvaluate -> { calculateResult() }
             is CalculatorEvent.OnPercent -> { addPercent(); calculateResult() }
             is CalculatorEvent.OnSmartParenthesis -> { addSmartParenthesis(); calculateResult() }
-            // TODO Change calculateResult() realtime implementation to reactive consequence
             is CalculatorEvent.OnToggleHistory -> {
                 _state.update { it.copy(isHistoryOpen = !it.isHistoryOpen) }
             }
@@ -338,7 +337,7 @@ class CalculatorViewModel @Inject constructor(
 
             // Find the target rate
             val targetRate = currentRates.find { it.currencyCode == currentState.targetCurrencyCode }?.rateRelativeToBase ?: 1.0
-            val convertedResult = if (targetRate != 0.0) rawResultInPHP / targetRate else 0.0
+            val convertedResult = if (targetRate != 0.0) rawResultInPHP * targetRate else 0.0
 
             // Get official symbol from code
             val currencySymbol = try {
