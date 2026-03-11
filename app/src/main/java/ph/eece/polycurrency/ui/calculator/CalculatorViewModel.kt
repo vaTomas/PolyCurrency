@@ -228,9 +228,9 @@ class CalculatorViewModel @Inject constructor(
                 parenthesisBalance == 0 -> true
 
                 else -> when (lastToken) {
-                    is CalculatorToken.Operator -> true
+                    is CalculatorToken.Operator -> lastToken.symbol != '%'
                     is CalculatorToken.Parenthesis -> lastToken.type == '('
-                    else -> false
+                    else -> false // Numbers and Currencies will trigger a ')' here
                 }
             }
 
