@@ -43,6 +43,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import ph.eece.polycurrency.ui.calculator.CalculatorEvent
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -63,14 +64,19 @@ fun CurrencySelectionScreen(
     // Filter Logic
 
     // No filter if search is empty
-    val filteredList = remember(searchQuery) {
-        filterCurrencies(searchQuery, worldCurrencies)
+    val filteredList = remember(searchQuery, state.currencyRates) {
+        state.currencyRates.filter {
+            it.currencyCode.contains(searchQuery, ignoreCase = true) ||
+                    it.currencyName.contains(searchQuery, ignoreCase = true)
+        }.sortedBy { it.currencyCode } // Alphabetical sort
     }
 
     // Group filtered results by initial letter
     val groupedCurrencies = remember(filteredList) {
-        filteredList.groupBy { it.country.first().uppercaseChar() }
+        filteredList.groupBy { it.currencyCode.first().uppercaseChar() }
     }
+
+
 
     // Back return
 
@@ -148,7 +154,7 @@ fun CurrencySelectionScreen(
         if (filteredList.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "No currencies found.",
+                    text = if (state.currencyRates.isEmpty()) "Loading internet rates..." else "No currencies found.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -159,9 +165,7 @@ fun CurrencySelectionScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                // Loop through the grouped data
                 groupedCurrencies.forEach { (initial, currencies) ->
-
                     stickyHeader {
                         Box(
                             modifier = Modifier
@@ -179,37 +183,44 @@ fun CurrencySelectionScreen(
                     }
 
                     items(currencies) { currency ->
-                        val isSelected = state.activeCurrencies.contains(currency.code)
+                        // 3. Check State to see if it is enabled
+                        val isSelected = state.activeCurrencies.contains(currency.currencyCode)
 
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { viewModel.toggleCurrency(currency.code) }
+                                .clickable {
+                                    // 4. Fire the clean Architectural Event
+                                    viewModel.onEvent(CalculatorEvent.OnToggleActiveCurrency(currency.currencyCode))
+                                }
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Checkbox(
                                 checked = isSelected,
-                                onCheckedChange = { viewModel.toggleCurrency(currency.code) }
+                                onCheckedChange = {
+                                    viewModel.onEvent(CalculatorEvent.OnToggleActiveCurrency(currency.currencyCode))
+                                }
                             )
 
                             Spacer(modifier = Modifier.width(16.dp))
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = currency.code,
+                                    text = currency.currencyCode,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = currency.name,
+                                    text = currency.currencyName, // Using the API name
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
+                            // 5. Apply the Senior Emoji Trick
                             Text(
-                                text = currency.flagEmoji,
+                                text = getFlagEmojiForCurrency(currency.currencyCode),
                                 fontSize = 32.sp
                             )
                         }
@@ -218,5 +229,25 @@ fun CurrencySelectionScreen(
                 }
             }
         }
+    }
+}
+
+
+fun getFlagEmojiForCurrency(currencyCode: String): String {
+    // Currencies like EUR or cryptos don't map perfectly to one country flag
+    if (currencyCode == "EUR") return "🇪🇺"
+    if (currencyCode.length < 2) return "🌐"
+
+    // Grab the first two letters (e.g., "US" from "USD")
+    val countryCode = currencyCode.substring(0, 2).uppercase()
+
+    // Convert to Regional Indicator Symbols
+    val firstLetter = Character.codePointAt(countryCode, 0) - 0x41 + 0x1F1E6
+    val secondLetter = Character.codePointAt(countryCode, 1) - 0x41 + 0x1F1E6
+
+    return try {
+        String(Character.toChars(firstLetter)) + String(Character.toChars(secondLetter))
+    } catch (e: Exception) {
+        "🌐"
     }
 }

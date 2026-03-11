@@ -1,7 +1,6 @@
 package ph.eece.polycurrency.ui.calculator
 
 import java.util.Stack
-import ph.eece.polycurrency.ui.currency.CurrencyData
 import ph.eece.polycurrency.data.local.entity.ExchangeRateEntity
 
 object MathEngine {

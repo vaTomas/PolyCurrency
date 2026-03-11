@@ -61,6 +61,17 @@ class CalculatorViewModel @Inject constructor(
                 _state.update { it.copy(targetCurrencyCode = event.code) }
                 calculateResult()
             }
+            is CalculatorEvent.OnToggleActiveCurrency -> {
+                _state.update { currentState ->
+                    val currentList = currentState.activeCurrencies.toMutableList()
+                    if (currentList.contains(event.code)) {
+                        currentList.remove(event.code) // Uncheck
+                    } else {
+                        currentList.add(event.code)    // Check
+                    }
+                    currentState.copy(activeCurrencies = currentList)
+                }
+            }
         }
     }
 
