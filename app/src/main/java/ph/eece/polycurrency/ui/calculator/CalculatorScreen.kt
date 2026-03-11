@@ -83,7 +83,7 @@ fun CalculatorScreen(
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Icon(
-                imageVector = if (state.isExtrasOpen) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                imageVector = if (state.isExtrasOpen) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = "Toggle Extras",
                 tint = MaterialTheme.colorScheme.primary
             )
@@ -93,8 +93,8 @@ fun CalculatorScreen(
         AnimatedVisibility(visible = state.isExtrasOpen) {
             ExtrasPanel(
                 currencies = state.activeCurrencies,
-                onCurrencyClick = { viewModel.onEvent(CalculatorEvent.OnCurrency(it)) },
-                onOperationClick = { viewModel.onEvent(CalculatorEvent.OnOperator(it)) }
+                onEvent = viewModel::onEvent,
+                onManageCurrencies = onOpenCurrencySelector
             )
         }
 
