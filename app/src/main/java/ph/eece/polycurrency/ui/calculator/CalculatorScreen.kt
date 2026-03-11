@@ -53,16 +53,16 @@ fun CalculatorScreen(
             onMoreOptions = {}
         )
 
-        // History
-        AnimatedVisibility(visible = state.isHistoryOpen) {
-            Box(Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Text("History coming soon...", Modifier.align(Alignment.Center))
-            }
-        }
+//        // History
+//        AnimatedVisibility(visible = state.isHistoryOpen) {
+//            Box(Modifier
+//                .fillMaxWidth()
+//                .height(150.dp)
+//                .background(MaterialTheme.colorScheme.surfaceVariant)
+//            ) {
+//                Text("History coming soon...", Modifier.align(Alignment.Center))
+//            }
+//        }
 
         // Live Result
         Spacer(Modifier.weight(1f))

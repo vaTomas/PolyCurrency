@@ -24,13 +24,13 @@ fun CalculatorHeader(
         modifier = Modifier.fillMaxWidth().padding(8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        IconButton(onClick = onToggleHistory) {
-            Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = "History",
-                tint = if (isHistoryOpen) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-            )
-        }
+//        IconButton(onClick = onToggleHistory) {
+//            Icon(
+//                imageVector = Icons.Default.Refresh,
+//                contentDescription = "History",
+//                tint = if (isHistoryOpen) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+//            )
+//        }
         IconButton(onClick = onMoreOptions) {
             Icon(Icons.Default.MoreVert, contentDescription = "More")
         }
