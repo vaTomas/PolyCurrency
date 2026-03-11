@@ -13,7 +13,7 @@ val worldCurrencies = listOf(
     CurrencyData("AFN", "Afghan Afghani", "Afghanistan", "🇦🇫", 1.0),
     CurrencyData("ALL", "Albanian Lek", "Albania", "🇦🇱", 1.0),
     CurrencyData("DZD", "Algerian Dinar", "Algeria", "🇩🇿", 1.0),
-    CurrencyData("USD", "United States Dollar", "America (USA)", "🇺🇸", 0.01696208398),
+    CurrencyData("USD", "United States Dollar", "America (USA)", "🇺🇸", 1.0),
     CurrencyData("AUD", "Australian Dollar", "Australia", "🇦🇺", 1.0),
     CurrencyData("BHD", "Bahraini Dinar", "Bahrain", "🇧🇭", 1.0),
     CurrencyData("BSD", "Bahamian Dollar", "Bahamas", "🇧🇸", 1.0),

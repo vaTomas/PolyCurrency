@@ -1,12 +1,13 @@
 package ph.eece.polycurrency.ui.calculator
 
-import ph.eece.polycurrency.ui.currency.CurrencyData
 import java.util.Stack
+import ph.eece.polycurrency.ui.currency.CurrencyData
+import ph.eece.polycurrency.data.local.entity.ExchangeRateEntity
 
 object MathEngine {
     fun evaluate(
         tokens: List<CalculatorToken>,
-        currencyDataList: List<CurrencyData>
+        currencyDataList: List<ExchangeRateEntity>
     ): Double {
         // Convert CalculatorTokens to a pure math list (handling implicit mults and scalars)
         val normalizedTokens = normalizeTokens(tokens, currencyDataList)
@@ -22,11 +23,11 @@ object MathEngine {
     // Convert Currencies and Percents into Scalar Coefficients
     private fun normalizeTokens(
         tokens: List<CalculatorToken>,
-        currencyDataList: List<CurrencyData>
+        currencyDataList: List<ExchangeRateEntity>
     ): List<MathToken> {
         val result = mutableListOf<MathToken>()
         // Rates lookup map
-        val rateMap = currencyDataList.associate { it.code to it.rateToPHP }
+        val rateMap = currencyDataList.associate { it.currencyCode to it.rateRelativeToBase }
 
         tokens.forEachIndexed { index, token ->
             val prevToken = tokens.getOrNull(index - 1)

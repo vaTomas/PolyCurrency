@@ -6,9 +6,8 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "exchange_rates")
 data class ExchangeRateEntity(
     @PrimaryKey
-    val currencyCode: String,  // e.g., "USD", "EUR", "PHP"
-
+    val currencyCode: String,       // e.g., "USD", "EUR", "PHP"
+    val currencyName: String,       // e.g., "United States Dollar", "Euro", "Philippine Peso"
     val rateRelativeToBase: Double, // e.g., 58.50 (if Base is USD and this is PHP)
-
-    val lastUpdatedTimestamp: Long // For the "Offline Warning" logic
+    val lastUpdatedTimestamp: Long  // For the "Offline Warning" logic
 )

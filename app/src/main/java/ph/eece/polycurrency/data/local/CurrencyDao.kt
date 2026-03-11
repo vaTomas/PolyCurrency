@@ -3,10 +3,11 @@ package ph.eece.polycurrency.data.local
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
+import androidx.room.OnConflictStrategy
 import kotlinx.coroutines.flow.Flow
 import ph.eece.polycurrency.data.local.entity.ExchangeRateEntity
 
-@Dao
+@Dao // Data Access Object
 interface CurrencyDao {
 
     // 1. Get all rates. Return Flow so UI updates automatically when DB changes.

@@ -1,5 +1,7 @@
 package ph.eece.polycurrency.ui.calculator
 
+import ph.eece.polycurrency.data.local.entity.ExchangeRateEntity
+
 // Store to Memory
 data class CalculatorState(
     val tokens: List<CalculatorToken> = emptyList(),
@@ -11,6 +13,7 @@ data class CalculatorState(
     val isExtrasOpen: Boolean = false,
 
     val targetCurrencyCode: String = "PHP",
+    val currencyRates: List<ExchangeRateEntity> = emptyList(),
 
     val history: List<String> = emptyList()
 ) {

@@ -1,17 +1,40 @@
 package ph.eece.polycurrency.ui.calculator
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
+import ph.eece.polycurrency.data.CurrencyRepository
 
 @HiltViewModel
-class CalculatorViewModel @Inject constructor() : ViewModel() {
+class CalculatorViewModel @Inject constructor(
+    private val repository: CurrencyRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(CalculatorState())
     val state = _state.asStateFlow()
+
+    init {
+        // 1. Listen to the Local Database continuously
+        viewModelScope.launch {
+            repository.allRates.collect { databaseRates ->
+                // Every time DB change, update  state
+                _state.update { it.copy(currencyRates = databaseRates) }
+
+                // Recalculate  result immediately so the UI updates if rates changed
+                calculateResult()
+            }
+        }
+
+        // 2. Background Poll internet for fresh rates
+        viewModelScope.launch {
+            repository.syncRates(backendBase = "PHP")
+        }
+    }
 
     fun onEvent(event: CalculatorEvent) {
         when (event) {
@@ -21,7 +44,7 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
             }
             is CalculatorEvent.OnOperator -> { addOperator(event.op); calculateResult() }
 
-            is CalculatorEvent.OnClear -> _state.update { CalculatorState() } // Reset
+            is CalculatorEvent.OnClear -> { onClear() } // Reset
             is CalculatorEvent.OnDelete -> { onDelete(); calculateResult() }
             is CalculatorEvent.OnCurrency -> { addCurrency(event.code); calculateResult() }
             is CalculatorEvent.OnEvaluate -> { calculateResult() }
@@ -245,18 +268,34 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
         }
     }
 
+    private fun onClear() {
+        _state.update { currentState ->
+            currentState.copy(
+                tokens = emptyList(),
+                liveResult = ""
+            )
+        }
+    }
+
     private fun calculateResult() {
         _state.update { currentState ->
-            val tokens = currentState.tokens
-            val currencyData = ph.eece.polycurrency.ui.currency.worldCurrencies
-            val rawResult = try {
-                MathEngine.evaluate(tokens, currencyData)
-            } catch (e: Exception) {
-                0.0 // Fail safe
-            }
+            if (currentState.tokens.isEmpty()) return@update currentState.copy(liveResult = "")
 
-            val symbol = getSymbolFor(currentState.targetCurrencyCode)
-            val resultString = "$symbol " + String.format("%,.2f", rawResult) // TODO Make programmable
+            // Use the rates from the database.
+            val currentRates = currentState.currencyRates
+
+            // If the database is empty (first launch, no internet), just return 0.0 or wait.
+            if (currentRates.isEmpty()) return@update currentState.copy(liveResult = "Updating...")
+
+            val rawResultInPHP = try {
+                MathEngine.evaluate(currentState.tokens, currentRates) // Pass the real rates
+            } catch (e: Exception) { 0.0 }
+
+            // Find the target rate
+            val targetRate = currentRates.find { it.currencyCode == currentState.targetCurrencyCode }?.rateRelativeToBase ?: 1.0
+            val convertedResult = if (targetRate != 0.0) rawResultInPHP / targetRate else 0.0
+
+            val resultString = "${currentState.targetCurrencyCode} " + String.format("%,.2f", convertedResult)
 
             currentState.copy(liveResult = resultString)
         }
