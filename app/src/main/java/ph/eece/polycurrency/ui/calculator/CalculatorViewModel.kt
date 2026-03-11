@@ -34,7 +34,7 @@ class CalculatorViewModel @Inject constructor(
 
         // Background Poll internet for fresh rates
         viewModelScope.launch {
-            repository.syncRates(backendBase = "PHP")
+            repository.syncRates()
         }
 
         viewModelScope.launch {
@@ -48,6 +48,14 @@ class CalculatorViewModel @Inject constructor(
             prefsRepository.targetCurrencyFlow.collect { savedTarget ->
                 _state.update { it.copy(targetCurrencyCode = savedTarget) }
                 calculateResult() // Recalculate math whenever the target changes
+            }
+        }
+
+        // Listen to the Base Currency Flow
+        viewModelScope.launch {
+            prefsRepository.baseCurrencyFlow.collect { savedBase ->
+                _state.update { it.copy(baseCurrencyCode = savedBase) }
+                calculateResult() // Recalculate if the math hub changes
             }
         }
     }
@@ -331,15 +339,19 @@ class CalculatorViewModel @Inject constructor(
             // If the database is empty (first launch, no internet), just return 0.0 or wait.
             if (currentRates.isEmpty()) return@update currentState.copy(liveResult = "Updating...")
 
-            val rawResultInPHP = try {
-                MathEngine.evaluate(currentState.tokens, currentRates) // Pass the real rates
-            } catch (e: Exception) { 0.0 }
+            // Math Engine
+            val finalResult = try {
+                MathEngine.evaluate(
+                    tokens = currentState.tokens,
+                    currencyDataList = currentRates,
+                    targetCurrencyCode = currentState.targetCurrencyCode,
+                    baseCurrencyCode = currentState.baseCurrencyCode // Pass the new dynamic base!
+                )
+            } catch (e: Exception) {
+                0.0
+            }
 
-            // Find the target rate
-            val targetRate = currentRates.find { it.currencyCode == currentState.targetCurrencyCode }?.rateRelativeToBase ?: 1.0
-            val convertedResult = if (targetRate != 0.0) rawResultInPHP * targetRate else 0.0
-
-            // Get official symbol from code
+            // Code to Symbol "USD" -> "$"
             val currencySymbol = try {
                 java.util.Currency.getInstance(currentState.targetCurrencyCode).symbol
             } catch (e: Exception) {
@@ -347,8 +359,9 @@ class CalculatorViewModel @Inject constructor(
                 currentState.targetCurrencyCode
             }
 
-            val resultString = "$currencySymbol " + String.format("%,.2f", convertedResult)
+            val resultString = "$currencySymbol " + String.format("%,.2f", finalResult)
 
+            // Update the UI
             currentState.copy(liveResult = resultString)
         }
     }

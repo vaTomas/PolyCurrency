@@ -17,10 +17,12 @@ class UserPreferencesRepository(private val context: Context) {
     companion object {
         val ACTIVE_CURRENCIES_KEY = stringSetPreferencesKey("active_currencies")
         val TARGET_CURRENCY_KEY = stringPreferencesKey("target_currency")
+        val BASE_CURRENCY_KEY = stringPreferencesKey("base_currency")
 
         // Set the default upon installation
-        val DEFAULT_CURRENCIES = setOf("USD", "EUR", "PHP")
-        const val DEFAULT_TARGET = "PHP"
+        val DEFAULT_CURRENCIES = setOf("USD", "EUR", "JPY", "GBP", "CNY")
+        const val DEFAULT_TARGET = "USD"
+        const val DEFAULT_BASE = "USD"
     }
 
     // Active Currency
@@ -41,5 +43,12 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun saveTargetCurrency(code: String) {
         context.dataStore.edit { it[TARGET_CURRENCY_KEY] = code }
+    }
+
+    // Base Currency
+    val baseCurrencyFlow: Flow<String> = context.dataStore.data
+        .map { it[BASE_CURRENCY_KEY] ?: DEFAULT_BASE }
+    suspend fun saveBaseCurrency(code: String) {
+        context.dataStore.edit { it[BASE_CURRENCY_KEY] = code }
     }
 }

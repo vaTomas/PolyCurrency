@@ -2,21 +2,26 @@ package ph.eece.polycurrency.data
 
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import ph.eece.polycurrency.data.local.CurrencyDao
 import ph.eece.polycurrency.data.local.entity.ExchangeRateEntity
 import ph.eece.polycurrency.data.remote.FrankfurterApi
 
 class CurrencyRepository(
     private val api: FrankfurterApi,
-    private val dao: CurrencyDao
+    private val dao: CurrencyDao,
+    private val prefsRepository: UserPreferencesRepository
 ) {
     // 1. The UI observes this Flow. It never cares about the API directly.
     val allRates: Flow<List<ExchangeRateEntity>> = dao.getAllRates()
 
-    // 2. The function to sync data from the Internet to the Local Database
-    suspend fun syncRates(backendBase: String = "PHP") {
+    // 2. We remove the hardcoded parameter. The function gets it internally now.
+    suspend fun syncRates() {
         try {
-            // Fetch names and rates simultaneously
+            // 3. Take a one-time snapshot of the user's preferred Base Currency
+            val backendBase = prefsRepository.baseCurrencyFlow.first()
+
+            // Fetch names and rates simultaneously using the dynamic base
             val namesMap = api.getCurrencies()
             val latestData = api.getLatestRates(base = backendBase)
 
@@ -35,8 +40,7 @@ class CurrencyRepository(
                 )
             }
 
-            // IMPORTANT: The API doesn't return the base currency in the 'rates' list.
-            // We must add our Backend Base (PHP) manually with a rate of 1.0!
+            // IMPORTANT: Add the dynamic Backend Base manually with a rate of 1.0
             entitiesToSave.add(
                 ExchangeRateEntity(
                     currencyCode = backendBase,
@@ -48,7 +52,7 @@ class CurrencyRepository(
 
             // Save to Local Database (Upsert will overwrite old rates, keep new ones)
             dao.upsertRates(entitiesToSave)
-            Log.d("Repository", "Successfully synced ${entitiesToSave.size} currencies.")
+            Log.d("Repository", "Successfully synced ${entitiesToSave.size} currencies with base $backendBase.")
 
         } catch (e: Exception) {
             // If offline, the app just uses whatever is already in the Room DB.

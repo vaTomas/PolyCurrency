@@ -61,9 +61,10 @@ object AppModule {
     @Singleton
     fun provideCurrencyRepository(
         api: FrankfurterApi,
-        dao: CurrencyDao
+        dao: CurrencyDao,
+        prefsRepository: UserPreferencesRepository
     ): CurrencyRepository {
-        return CurrencyRepository(api, dao)
+        return CurrencyRepository(api, dao, prefsRepository)
     }
 
     // Preferences User Settings
