@@ -10,4 +10,6 @@ sealed class CalculatorEvent {
     object  OnPercent : CalculatorEvent()
     object OnSmartParenthesis : CalculatorEvent()
     object OnToggleHistory : CalculatorEvent()
+    object OnToggleExtras : CalculatorEvent()
+    data class OnChangeTargetCurrency(val code: String) : CalculatorEvent()
 }

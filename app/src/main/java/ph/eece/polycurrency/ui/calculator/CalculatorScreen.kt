@@ -1,8 +1,13 @@
 package ph.eece.polycurrency.ui.calculator
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,12 +18,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ph.eece.polycurrency.ui.components.CalculatorInput
-import ph.eece.polycurrency.ui.calculator.CalculatorKeypad
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.graphics.RectangleShape
+import ph.eece.polycurrency.ui.calculator.components.CalculatorDisplay
+import ph.eece.polycurrency.ui.calculator.components.CalculatorHeader
+import ph.eece.polycurrency.ui.calculator.components.ExtrasPanel
+import ph.eece.polycurrency.ui.calculator.components.NumberPad
 
 @Composable
 fun CalculatorScreen(
@@ -28,66 +37,68 @@ fun CalculatorScreen(
     // Collect the UI State from the ViewModel
     val state by viewModel.state.collectAsState()
 
+    val buttonShape = if (state.isExtrasOpen) CircleShape else CircleShape
+    val buttonAspectRatio = if (state.isExtrasOpen) 1f else 1f
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // History
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // History Button
-            IconButton(onClick = { viewModel.onEvent(CalculatorEvent.OnToggleHistory) }) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "History",
-                    // Visual Feedback: Tint primary if open, default color if closed
-                    tint = if (state.isHistoryOpen) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface
-                )
-            }
 
-            // Three Dots
-            IconButton(onClick = { /* Do nothing for now */ }) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More Options",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
+        // Header
+        CalculatorHeader(
+            isHistoryOpen = state.isHistoryOpen,
+            onToggleHistory = { viewModel.onEvent(CalculatorEvent.OnToggleHistory) },
+            onMoreOptions = {}
+        )
+
+        // History
+        AnimatedVisibility(visible = state.isHistoryOpen) {
+            Box(Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Text("History coming soon...", Modifier.align(Alignment.Center))
             }
         }
 
         // Live Result
-        Column(
-            modifier = Modifier
-                .weight(0.35f)
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.End
-        ) {
-//            Column(horizontalAlignment = Alignment.End) {
-//                // Placeholder for History List
-//                Text(
-//                    text = "History Empty",
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    color = MaterialTheme.colorScheme.onSurfaceVariant
-//                )
-            Spacer(modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.height(8.dp))
+        Spacer(Modifier.weight(1f))
+        CalculatorDisplay(
+            expression = state.inputExpression,
+            result = state.liveResult,
+            targetCurrencyCode = state.targetCurrencyCode,
+            onTargetClick = {
+                // TODO Make searchable
+                val next = if (state.targetCurrencyCode == "PHP") "USD" else "PHP"
+                viewModel.onEvent(CalculatorEvent.OnChangeTargetCurrency(next))
+            }
+        )
 
-            // The Live Result
-            Text(
-                text = state.liveResult.ifEmpty { "PHP 0.00" }, // TODO Make dynamic
-                style = MaterialTheme.typography.displaySmall,
-                color = MaterialTheme.colorScheme.primary
+        // Extras Toggle
+        IconButton(
+            onClick = { viewModel.onEvent(CalculatorEvent.OnToggleExtras) },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Icon(
+                imageVector = if (state.isExtrasOpen) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                contentDescription = "Toggle Extras",
+                tint = MaterialTheme.colorScheme.primary
             )
         }
 
+        // Extras Keypad
+        AnimatedVisibility(visible = state.isExtrasOpen) {
+            ExtrasPanel(
+                currencies = state.activeCurrencies,
+                onCurrencyClick = { viewModel.onEvent(CalculatorEvent.OnCurrency(it)) },
+                onOperationClick = { viewModel.onEvent(CalculatorEvent.OnOperator(it)) }
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
 
         // Input Editor
         CalculatorInput(
@@ -98,12 +109,15 @@ fun CalculatorScreen(
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         )
 
-        // Keypad
-        CalculatorKeypad(
-            onEvent = viewModel::onEvent,
-            activeCurrencies = state.activeCurrencies,
-            onManageCurrencies = onOpenCurrencySelector,
-            modifier = Modifier.weight(0.5f)
-        )
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+        ) {
+            NumberPad(
+                onEvent = viewModel::onEvent,
+                buttonShape = buttonShape,       // <--- Dynamic Shape passed here
+                buttonAspectRatio = buttonAspectRatio // <--- Dynamic Ratio passed here
+            )
+        }
     }
 }

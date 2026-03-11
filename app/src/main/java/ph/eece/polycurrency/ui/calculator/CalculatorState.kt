@@ -4,8 +4,13 @@ package ph.eece.polycurrency.ui.calculator
 data class CalculatorState(
     val tokens: List<CalculatorToken> = emptyList(),
     val liveResult: String = "",
+    val activeCurrencies: List<String> = listOf("USD", "PHP", "EUR", "VND"), // TODO make dynamic
+
+    // UI Toggles
     val isHistoryOpen: Boolean = false,
-    val activeCurrencies: List<String> = listOf("USD", "PHP", "EUR", "VND"),
+    val isExtrasOpen: Boolean = false,
+
+    val targetCurrencyCode: String = "PHP",
 
     val history: List<String> = emptyList()
 ) {

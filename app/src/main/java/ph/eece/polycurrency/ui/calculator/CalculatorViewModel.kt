@@ -31,6 +31,13 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
             is CalculatorEvent.OnToggleHistory -> {
                 _state.update { it.copy(isHistoryOpen = !it.isHistoryOpen) }
             }
+            is CalculatorEvent.OnToggleExtras -> {
+                _state.update { it.copy(isExtrasOpen = !it.isExtrasOpen) }
+            }
+            is CalculatorEvent.OnChangeTargetCurrency -> {
+                _state.update { it.copy(targetCurrencyCode = event.code) }
+                calculateResult()
+            }
         }
     }
 
@@ -242,14 +249,14 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
         _state.update { currentState ->
             val tokens = currentState.tokens
             val currencyData = ph.eece.polycurrency.ui.currency.worldCurrencies
-
             val rawResult = try {
                 MathEngine.evaluate(tokens, currencyData)
             } catch (e: Exception) {
                 0.0 // Fail safe
             }
 
-            val resultString = "PHP " + String.format("%,.2f", rawResult) // TODO Make programmable
+            val symbol = getSymbolFor(currentState.targetCurrencyCode)
+            val resultString = "$symbol " + String.format("%,.2f", rawResult) // TODO Make programmable
 
             currentState.copy(liveResult = resultString)
         }
@@ -270,3 +277,5 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
         }
     }
 }
+
+private fun CalculatorViewModel.getSymbolFor(targetCurrencyCode: String) {}
