@@ -39,34 +39,34 @@ fun ExtrasPanel(
             onManageCurrencies = onManageCurrencies,
             modifier = Modifier
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // ow 2: Custom Operations
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val ops = listOf('Δ', '√', '(', ')')
-            ops.forEach { op ->
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(50)) // Capsule
-                        .background(MaterialTheme.colorScheme.tertiaryContainer)
-                        .clickable { onEvent(CalculatorEvent.OnOperator(op)) } // <--- Trigger standard operator event
-                        .padding(vertical = 10.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = op.toString(),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
-                }
-            }
-        }
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        // ow 2: Custom Operations
+//        Row(
+//            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+//            horizontalArrangement = Arrangement.spacedBy(8.dp),
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            val ops = listOf('Δ', '√', '(', ')')
+//            ops.forEach { op ->
+//                Box(
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .clip(RoundedCornerShape(50)) // Capsule
+//                        .background(MaterialTheme.colorScheme.tertiaryContainer)
+//                        .clickable { onEvent(CalculatorEvent.OnOperator(op)) } // <--- Trigger standard operator event
+//                        .padding(vertical = 10.dp),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    Text(
+//                        text = op.toString(),
+//                        style = MaterialTheme.typography.titleMedium,
+//                        fontWeight = FontWeight.Bold,
+//                        color = MaterialTheme.colorScheme.onTertiaryContainer
+//                    )
+//                }
+//            }
+//        }
     }
 }

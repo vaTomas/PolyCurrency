@@ -99,10 +99,10 @@ object MathEngine {
         val operatorStack = Stack<MathToken>()
 
         val precedence = mapOf(
-            'Δ' to 0,
             '+' to 1, '-' to 1,
             '*' to 2, '/' to 2,
-            '#' to 3
+            'Δ' to 3,
+            '#' to 4
         )
 
         for (token in tokens) {

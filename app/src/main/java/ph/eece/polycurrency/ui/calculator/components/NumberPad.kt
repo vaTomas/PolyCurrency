@@ -60,7 +60,7 @@ fun NumberPad(
         Row(Modifier.weight(1f)) {
             PadButton("AC", { onEvent(CalculatorEvent.OnClear) }, actionColor, actionText, weight = 1f)
             PadButton("( )", { onEvent(CalculatorEvent.OnSmartParenthesis) }, weight = 1f)
-            PadButton("÷", { onEvent(CalculatorEvent.OnOperator('/')) }, operatorColor, operatorText, weight = 1f)
+            PadButton("Δ", { onEvent(CalculatorEvent.OnOperator('Δ')) }, operatorColor, operatorText, weight = 1f)
             PadButton("%", { onEvent(CalculatorEvent.OnPercent) }, operatorColor, operatorText, weight = 1f)
         }
 
@@ -68,28 +68,32 @@ fun NumberPad(
             PadButton("7", { onEvent(CalculatorEvent.OnDigit('7')) }, weight = 1f)
             PadButton("8", { onEvent(CalculatorEvent.OnDigit('8')) }, weight = 1f)
             PadButton("9", { onEvent(CalculatorEvent.OnDigit('9')) }, weight = 1f)
-            PadButton("×", { onEvent(CalculatorEvent.OnOperator('*')) }, operatorColor, operatorText, weight = 1f)
+            PadButton("÷", { onEvent(CalculatorEvent.OnOperator('/')) }, operatorColor, operatorText, weight = 1f)
+
         }
 
         Row(Modifier.weight(1f)) {
             PadButton("4", { onEvent(CalculatorEvent.OnDigit('4')) }, weight = 1f)
             PadButton("5", { onEvent(CalculatorEvent.OnDigit('5')) }, weight = 1f)
             PadButton("6", { onEvent(CalculatorEvent.OnDigit('6')) }, weight = 1f)
-            PadButton("-", { onEvent(CalculatorEvent.OnOperator('-')) }, operatorColor, operatorText, weight = 1f)
+            PadButton("×", { onEvent(CalculatorEvent.OnOperator('*')) }, operatorColor, operatorText, weight = 1f)
+
         }
 
         Row(Modifier.weight(1f)) {
             PadButton("1", { onEvent(CalculatorEvent.OnDigit('1')) }, weight = 1f)
             PadButton("2", { onEvent(CalculatorEvent.OnDigit('2')) }, weight = 1f)
             PadButton("3", { onEvent(CalculatorEvent.OnDigit('3')) }, weight = 1f)
-            PadButton("+", { onEvent(CalculatorEvent.OnOperator('+')) }, operatorColor, operatorText, weight = 1f)
+            PadButton("-", { onEvent(CalculatorEvent.OnOperator('-')) }, operatorColor, operatorText, weight = 1f)
+
         }
 
         Row(Modifier.weight(1f)) {
             PadButton("0", { onEvent(CalculatorEvent.OnDigit('0')) }, weight = 1f)
             PadButton(".", { onEvent(CalculatorEvent.OnDigit('.')) }, weight = 1f)
             PadButton("⌫", { onEvent(CalculatorEvent.OnDelete) }, weight = 1f)
-            PadButton("=", { onEvent(CalculatorEvent.OnEvaluate) }, primaryColor, primaryText, weight = 1f)
+            PadButton("+", { onEvent(CalculatorEvent.OnOperator('+')) }, operatorColor, operatorText, weight = 1f)
+//          PadButton("=", { onEvent(CalculatorEvent.OnEvaluate) }, primaryColor, primaryText, weight = 1f)
         }
     }
 }

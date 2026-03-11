@@ -90,7 +90,7 @@ fun CalculatorScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(4.236f),
+                    .weight(2.618f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 //                // Extras Toggle
