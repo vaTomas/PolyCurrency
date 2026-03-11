@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -32,6 +33,14 @@ fun CalculatorDisplay(
     targetCurrencyCode: String,
     onTargetClick: () -> Unit // Opens the currency selector
 ) {
+    val currencySymbol = remember(targetCurrencyCode) {
+        try {
+            java.util.Currency.getInstance(targetCurrencyCode).symbol
+        } catch (e: Exception) {
+            targetCurrencyCode // Fallback to "AED", etc.
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -80,7 +89,7 @@ fun CalculatorDisplay(
 
             // Value
             Text(
-                text = result.ifEmpty { "₱ 0.00" },
+                text = result.ifEmpty { "$currencySymbol 0.00" },
                 style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.End

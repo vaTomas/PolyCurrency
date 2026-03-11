@@ -319,7 +319,15 @@ class CalculatorViewModel @Inject constructor(
             val targetRate = currentRates.find { it.currencyCode == currentState.targetCurrencyCode }?.rateRelativeToBase ?: 1.0
             val convertedResult = if (targetRate != 0.0) rawResultInPHP / targetRate else 0.0
 
-            val resultString = "${currentState.targetCurrencyCode} " + String.format("%,.2f", convertedResult)
+            // Get official symbol from code
+            val currencySymbol = try {
+                java.util.Currency.getInstance(currentState.targetCurrencyCode).symbol
+            } catch (e: Exception) {
+                // Default to code if no symbol
+                currentState.targetCurrencyCode
+            }
+
+            val resultString = "$currencySymbol " + String.format("%,.2f", convertedResult)
 
             currentState.copy(liveResult = resultString)
         }
