@@ -31,9 +31,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ph.eece.polycurrency.ui.currency.getFlagEmojiForCurrency
@@ -44,6 +47,7 @@ fun CalculatorDisplay(
     result: String,
     targetCurrencyCode: String,
     activeCurrencies: List<String>,
+    lastUpdatedDate: String,
     onCurrencySelected: (String) -> Unit
 ) {
     val currencySymbol = remember(targetCurrencyCode) {
@@ -54,12 +58,13 @@ fun CalculatorDisplay(
         }
     }
 
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.SpaceEvenly
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         // Equation Display
         EquationDisplay(expression = expression)
@@ -86,6 +91,9 @@ fun CalculatorDisplay(
                 modifier = Modifier.weight(1f)
             )
         }
+
+        // Rates Timestamp
+        RatesTimestampDisplay(formattedDate = lastUpdatedDate)
     }
 }
 
@@ -193,4 +201,32 @@ fun ResultDisplay(
             )
         )
     }
+}
+
+@Composable
+fun RatesTimestampDisplay(
+    formattedDate: String,
+    modifier: Modifier = Modifier
+) {
+    if (formattedDate.isBlank()) return
+
+    Text(
+        text = buildAnnotatedString {
+            append("Rates as of ")
+
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                append(formattedDate)
+            }
+
+            append(" by ")
+
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                append("Frankfurter.app")
+            }
+        },
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+        textAlign = TextAlign.Left,
+        modifier = modifier.fillMaxWidth()
+    )
 }

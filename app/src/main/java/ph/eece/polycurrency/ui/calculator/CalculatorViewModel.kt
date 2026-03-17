@@ -6,10 +6,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import ph.eece.polycurrency.data.CurrencyRepository
 import ph.eece.polycurrency.data.UserPreferencesRepository
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @HiltViewModel
 class CalculatorViewModel @Inject constructor(
@@ -21,43 +26,42 @@ class CalculatorViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     init {
-        // Listen to the Local Database continuously
-        viewModelScope.launch {
-            repository.allRates.collect { databaseRates ->
-                // Every time DB change, update  state
-                _state.update { it.copy(currencyRates = databaseRates) }
-
-                // Recalculate  result immediately so the UI updates if rates changed
-                calculateResult()
-            }
-        }
-
-        // Background Poll internet for fresh rates
+        // Background Network Sync
         viewModelScope.launch {
             repository.syncRates()
         }
 
-        viewModelScope.launch {
-            prefsRepository.activeCurrenciesFlow.collect { savedCurrencies ->
-                _state.update { it.copy(activeCurrencies = savedCurrencies) }
-            }
-        }
+        // The Master State Combiner
+        combine(
+            repository.allRates,
+            prefsRepository.activeCurrenciesFlow,
+            prefsRepository.targetCurrencyFlow,
+            prefsRepository.baseCurrencyFlow
+        ) { databaseRates, savedCurrencies, savedTarget, savedBase ->
 
-        // Listen to the Target Currency Flow
-        viewModelScope.launch {
-            prefsRepository.targetCurrencyFlow.collect { savedTarget ->
-                _state.update { it.copy(targetCurrencyCode = savedTarget) }
-                calculateResult() // Recalculate math whenever the target changes
+            // Format Timestamp
+            val rawTimestamp = databaseRates.firstOrNull()?.lastUpdatedTimestamp ?: 0L
+            val formattedDate = if (rawTimestamp == 0L) {
+                ""
+            } else {
+                val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                sdf.format(Date(rawTimestamp))
             }
-        }
 
-        // Listen to the Base Currency Flow
-        viewModelScope.launch {
-            prefsRepository.baseCurrencyFlow.collect { savedBase ->
-                _state.update { it.copy(baseCurrencyCode = savedBase) }
-                calculateResult() // Recalculate if the math hub changes
+            // Atomically Update State
+            _state.update { currentState ->
+                currentState.copy(
+                    currencyRates = databaseRates,
+                    activeCurrencies = savedCurrencies,
+                    targetCurrencyCode = savedTarget,
+                    baseCurrencyCode = savedBase,
+                    lastUpdatedDate = formattedDate
+                )
             }
-        }
+
+            calculateResult()
+
+        }.launchIn(viewModelScope)
     }
 
     fun onEvent(event: CalculatorEvent) {

@@ -40,6 +40,7 @@ fun CalculatorScreen(
 
     val buttonShape = if (state.isExtrasOpen) CircleShape else CircleShape
     val buttonAspectRatio = if (state.isExtrasOpen) 1f else 1f
+
     Scaffold(
 
     ) { innerPadding ->
@@ -48,6 +49,7 @@ fun CalculatorScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
+                .padding(top = 24.dp)
         ) {
 
 //            // Header
@@ -80,6 +82,7 @@ fun CalculatorScreen(
                     result = state.liveResult,
                     targetCurrencyCode = state.targetCurrencyCode,
                     activeCurrencies = state.activeCurrencies,
+                    lastUpdatedDate = state.lastUpdatedDate,
                     onCurrencySelected = { selectedCode ->
                         viewModel.onEvent(CalculatorEvent.OnChangeTargetCurrency(selectedCode))
                     }

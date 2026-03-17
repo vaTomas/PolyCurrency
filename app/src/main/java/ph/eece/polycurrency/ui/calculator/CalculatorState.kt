@@ -7,7 +7,7 @@ import ph.eece.polycurrency.data.local.entity.ExchangeRateEntity
 data class CalculatorState(
     val tokens: List<CalculatorToken> = emptyList(),
     val liveResult: String = "",
-    val activeCurrencies: List<String> = listOf("USD", "PHP", "EUR", "VND"), // TODO make dynamic
+    val activeCurrencies: List<String> = emptyList(),
 
     // UI Toggles
     val isHistoryOpen: Boolean = false,
@@ -17,7 +17,9 @@ data class CalculatorState(
     val baseCurrencyCode: String = UserPreferencesRepository.DEFAULT_BASE,
     val currencyRates: List<ExchangeRateEntity> = emptyList(),
 
-    val history: List<String> = emptyList()
+    val lastUpdatedDate: String = "",
+
+//    val history: List<String> = emptyList()
 ) {
     // Convert Token List to formatted String
     // Projection Layer
