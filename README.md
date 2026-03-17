@@ -5,13 +5,13 @@ A currency converter calculator designed to handle compound, multi-currency alge
 Unlike standard conversion apps that only convert single values, PolyCurrency features a custom-built mathematical engine that parses prefix-notation currencies (e.g., `USD 100 + EUR 100`), resolving them into pure scalar ratios to output a result in any supported target currency.
 
 <p align="center">
-<img src="screenshots/calculator_add.jpg" width="200" alt="Addition of Different Currencies"/>
+<img src="screenshots/calculator_add.jpg" width="180" alt="Addition of Different Currencies"/>
 &nbsp;
-<img src="screenshots/calculator_compound.jpg" width="200" alt="Complex Multi-Currency Algebra"/>
+<img src="screenshots/calculator_compound.jpg" width="180" alt="Complex Multi-Currency Algebra"/>
 &nbsp;
-<img src="screenshots/calculator_delta.jpg" width="200" alt="Delta Operator and Percentages"/>
+<img src="screenshots/calculator_delta.jpg" width="180" alt="Delta Operator and Percentages"/>
 &nbsp;
-<img src="screenshots/currency_list.jpg" width="200" alt="Manage Currencies Menu"/>
+<img src="screenshots/currency_list.jpg" width="180" alt="Manage Currencies Menu"/>
 </p>
 
 ## Key Features
@@ -90,3 +90,7 @@ PolyCurrency dynamically tracks and caches exchange rates for **30 major global 
 * **User Preferences:** DataStore (Preferences) for lightweight state management.
 * **Concurrency:** Kotlin Coroutines & Flow.
 * **Architecture:** MVVM (Model-View-ViewModel) with unidirectional data flow.
+
+## Acknowledgments
+
+**AI-Assisted Development:** The code for this project was written with the assistance of Google Gemini 3.1 Pro, operating under the architectural direction and QA of the repository owner.
